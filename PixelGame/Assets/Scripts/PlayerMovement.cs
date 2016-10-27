@@ -2,14 +2,15 @@ using UnityEngine;
 using System.Collections;
 [RequireComponent(typeof(BoxCollider2D))]	
 
-public class PhysicsTest : MonoBehaviour {
+public class PlayerMovement : MonoBehaviour {
 	
 	//basic physics properties, all in units/second
 	float acceleration = 6.5f;
 	float maxSpeed = 150f;
 	float gravity = 8f;
 	float maxfall = 220f;
-	float jump = 220f;
+	float jump = 150f;
+	float climb = 100f;
 	
 	//a layer mask that I set in the Start() function
 	int layerMask;
@@ -23,6 +24,8 @@ public class PhysicsTest : MonoBehaviour {
 	//checks
 	bool grounded = false;
 	bool falling = false;
+	public bool onLadder = false;
+	bool climbing = false;
 	
 	//variables for raycasting: how many rays, etc
 	int horizontalRays = 7;
@@ -51,6 +54,10 @@ public class PhysicsTest : MonoBehaviour {
 	
 	// Update is called once per frame
 	void FixedUpdate () {
+		//Debug.Log(onLadder);
+		//Keep Rotation 0,0,0
+		this.transform.rotation= new Quaternion(0,0,0,0);
+
 		//this line of code will save us a lot of typing
 		box = new Rect(
 			t.transform.position.x + boxCol.offset.x - boxCol.size.x/2,
@@ -60,7 +67,7 @@ public class PhysicsTest : MonoBehaviour {
 		);
 		
 		//an elegant way to apply gravity. Subtract from y speed, with terminal velocity=maxfall
-		if (!grounded)
+		if (!grounded && !climbing)
 			velocity = new Vector2(velocity.x, Mathf.Max(velocity.y - gravity, -maxfall));
 		
 		if (velocity.y < 0){
@@ -128,7 +135,10 @@ public class PhysicsTest : MonoBehaviour {
 			int modifier = velocity.x > 0? -1 : 1;
 			newVelocityX += acceleration * modifier;
 		}
-		
+		if(horizontalAxis == 0)
+		{
+			newVelocityX = 0;
+		}
 		velocity = new Vector2(newVelocityX, velocity.y);
 		
 		if (velocity.x != 0){			//do physics checks if I'm going to move
@@ -180,7 +190,7 @@ public class PhysicsTest : MonoBehaviour {
 		
 		bool canJump = true;
 		
-		if (grounded || velocity.y > 0){
+		if (grounded || velocity.y > 0 ){
 			float upRayLength = grounded? margin : velocity.y * Time.deltaTime;
 			
 			bool connection = false;
@@ -232,7 +242,32 @@ public class PhysicsTest : MonoBehaviour {
 			//apply movement. Time.deltaTime=time since last frame
 			transform.Translate(velocity * Time.deltaTime);
 		}
-		
+
+		//--------------------------------------------------------------------------\\
+		//---------------------------------Ladder-----------------------------------\\
+		//--------------------------------------------------------------------------\\
+
+		float verticalAxis = Input.GetAxisRaw("Vertical");
+
+		if(onLadder)
+		{
+			if(verticalAxis != 0)
+			{
+				grounded = false;
+				Debug.Log("Climbing");
+				climbing = true;
+				velocity = new Vector2(velocity.x, climb*verticalAxis);
+				//Turn off Falling snap to middle of the trigger
+			}
+			else{
+				velocity= new Vector2(velocity.x, 0);
+			}
+		}
+		if(climbing && !onLadder)
+		{
+			climbing = false;
+			velocity= new Vector2(velocity.x, 0);
+		}
 	}
 	
 	void LateUpdate () {
@@ -248,10 +283,12 @@ public static class Raylayers{
 	static Raylayers(){
 		onlyCollisions = 1 << LayerMask.NameToLayer("NormalCollisions")
 			| 1 << LayerMask.NameToLayer("SoftTop")
-			| 1 << LayerMask.NameToLayer("SoftBottom");
+			| 1 << LayerMask.NameToLayer("OneWay");
 		upRay = 1 << LayerMask.NameToLayer("NormalCollisions")
 			| 1 << LayerMask.NameToLayer("SoftTop");
 		downRay = 1 << LayerMask.NameToLayer("NormalCollisions")
-			| 1 << LayerMask.NameToLayer("SoftBottom");
+			| 1 << LayerMask.NameToLayer("OneWay");
 	}
 }
+
+

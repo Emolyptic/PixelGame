@@ -71,7 +71,8 @@
      <Compile Include="Assets\CreativeSpore\SuperTilemapEditor\Scripts\Utils\TilemapDrawingUtils.cs" />
      <Compile Include="Assets\CreativeSpore\SuperTilemapEditor\Scripts\Utils\TilemapUtils.cs" />
      <Compile Include="Assets\Scripts\Character2DController.cs" />
-     <Compile Include="Assets\Scripts\PhysicsTest.cs" />
+     <Compile Include="Assets\Scripts\Ladder.cs" />
+     <Compile Include="Assets\Scripts\PlayerMovement.cs" />
      <Compile Include="Assets\Scripts\Singleton.cs" />
      <None Include="Assets\CreativeSpore\SuperTilemapEditor\Extra\Tileset - Samples\Tiled - Tmx Import\license.txt" />
      <None Include="Assets\CreativeSpore\SuperTilemapEditor\changelog.txt" />
